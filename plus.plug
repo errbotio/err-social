@@ -1,0 +1,6 @@
+[Core]
+Name = Plus
+Module = plus
+
+[Documentation]
+Description = Follow google+ users
