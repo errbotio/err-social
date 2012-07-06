@@ -63,7 +63,7 @@ class Plus(BotPlugin):
                 f = Feed(id, self.config['GOOGLECLIENT_APIKEY'])
                 if f.updated > follow[id]:
                     for item in [item for item in f.items if item.updated > self['follow'][id]]:
-                        self.send(room, unicode(item.updated) + ' -- ' + item.title , message_type='groupchat')
+                        self.send(room, item.url + '\n' + unicode(item.updated) + '--' + item.title , message_type='groupchat')
                         if item.attachments:
                             for image in item.attachments:
                                 self.send(room, image, message_type='groupchat')
@@ -74,7 +74,7 @@ class Plus(BotPlugin):
 
     def activate(self):
         super(Plus, self).activate()
-        self.start_poller(10, self.poll_plus)
+        self.start_poller(600, self.poll_plus)
 
     @botcmd
     def plus_last(self, mess, args):
@@ -88,7 +88,7 @@ class Plus(BotPlugin):
         f = Feed(args, self.config['GOOGLECLIENT_APIKEY'])
         self.send(mess.getFrom(), '****   ' + f.title, message_type=mess.getType())
         for item in f.items:
-            self.send(mess.getFrom(), unicode(item.updated) + ' -- ' + item.title, message_type=mess.getType())
+            self.send(mess.getFrom(), item.url + '\n' + unicode(item.updated) + ' -- ' + item.title, message_type=mess.getType())
             if item.attachments:
                 for image in item.attachments:
                     self.send(mess.getFrom(), image, message_type=mess.getType())
