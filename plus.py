@@ -37,7 +37,7 @@ class Feed(object):
 
 
 class Plus(BotPlugin):
-    min_err_version = '1.4.0' # it needs the configuration feature
+    min_err_version = '1.4.0' # it needs the polling feature
 
     def get_configuration_template(self):
         return {'GOOGLECLIENT_APIKEY': 'AIzaSyAKXi64lkJvAIHtTRf0WwQCGiw08gu8xsq'}
