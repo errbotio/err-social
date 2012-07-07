@@ -56,36 +56,43 @@ class Plus(BotPlugin):
         super(Plus, self).configure(configuration)
 
     def poll_plus(self):
-        if CHATROOM_PRESENCE:
-            room = CHATROOM_PRESENCE[0]
-            follow = self['follow']
-            for id in follow:
-                f = Feed(id, self.config['GOOGLECLIENT_APIKEY'])
-                if f.updated > follow[id]:
-                    for item in [item for item in f.items if item.updated > self['follow'][id]]:
-                        self.send(room, item.url + '\n' + unicode(item.updated) + '--' + item.title , message_type='groupchat')
-                        if item.attachments:
-                            for image in item.attachments:
-                                self.send(room, image, message_type='groupchat')
-                    follow[id] = f.updated
-                else:
-                    logging.debug(str(id) + ' has no update %s > %s' % (str(f.updated), str(follow[id])))
-                self['follow'] = follow
+        room = CHATROOM_PRESENCE[0]
+        follow = self['follow']
+        for id in follow:
+            f = Feed(id, self.config['GOOGLECLIENT_APIKEY'])
+            if f.updated > follow[id]:
+                self.send(room, f.title, message_type='groupchat')
+                for item in [item for item in f.items if item.updated > self['follow'][id]]:
+                    self.send(room, item.url + '\n' + unicode(item.updated) + '--' + item.title , message_type='groupchat')
+                    if item.attachments:
+                        for image in item.attachments:
+                            self.send(room, image, message_type='groupchat')
+                follow[id] = f.updated
+            else:
+                logging.debug(str(id) + ' has no update %s > %s' % (str(f.updated), str(follow[id])))
+            self['follow'] = follow
 
     def activate(self):
         super(Plus, self).activate()
+        if not CHATROOM_PRESENCE:
+            raise Exception('You need at least one chatroom configured')
         self.start_poller(600, self.poll_plus)
+
+    def get_display_name(self, id):
+        return json.load(urlopen(PLUS_PROFILE_URL % (id, self.config['GOOGLECLIENT_APIKEY'])))['displayName']
 
     @botcmd
     def plus_last(self, mess, args):
         """
         Find the last items from the specified user (i.e. 101905029512356212669)
+        for example : !plus last 101905029512356212669
         """
         if not self.config:
             return 'This plugin needs to be configured... run !config Plus'
         if not args:
             return 'Who you want to see ?'
         f = Feed(args, self.config['GOOGLECLIENT_APIKEY'])
+        self.send(mess.getFrom(), f.title, message_type=mess.getType())
         self.send(mess.getFrom(), '****   ' + f.title, message_type=mess.getType())
         for item in f.items:
             self.send(mess.getFrom(), item.url + '\n' + unicode(item.updated) + ' -- ' + item.title, message_type=mess.getType())
@@ -96,6 +103,10 @@ class Plus(BotPlugin):
 
     @botcmd
     def plus_search(self, mess, args):
+        """
+        Search for the id of a person or google plus page by name
+        for example : !plus search Guillaume BINET
+        """
         if not self.config:
             return 'This plugin needs to be configured... run !config Plus'
         if not args:
@@ -107,6 +118,10 @@ class Plus(BotPlugin):
 
     @botcmd
     def plus_follow(self, mess, args):
+        """
+        Follow the specified google plus stream by id
+        for example : !plus follow 101905029512356212669
+        """
         if not self.config:
             return 'This plugin needs to be configured... run !config Plus'
         if not args:
@@ -123,6 +138,10 @@ class Plus(BotPlugin):
 
     @botcmd
     def plus_unfollow(self, mess, args):
+        """
+        Unfollow the specified google plus stream by id
+        for example : !plus unfollow 101905029512356212669
+        """
         if not args:
             return 'Who you want to unfollow ?'
         if not args.isdigit():
@@ -138,5 +157,8 @@ class Plus(BotPlugin):
 
     @botcmd
     def plus_following(self, mess, args):
+        """
+        List the pages/persons you are following
+        """
         ids = self.get('follow', {}).keys()
-        return '\n'.join([json.load(urlopen(PLUS_PROFILE_URL % (id, self.config['GOOGLECLIENT_APIKEY'])))['displayName'] + ' (!plus unfollow %s)'%id for id in ids])
+        return '\n'.join([self.get_display_name(id) + ' (!plus unfollow %s)'%id for id in ids])
