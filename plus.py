@@ -37,23 +37,10 @@ class Feed(object):
 
 
 class Plus(BotPlugin):
-    min_err_version = '1.4.0' # it needs the polling feature
+    min_err_version = '1.4.1' # it needs the new automatic configuration feature
 
     def get_configuration_template(self):
         return {'GOOGLECLIENT_APIKEY': 'AIzaSyAKXi64lkJvAIHtTRf0WwQCGiw08gu8xsq'}
-
-    def configure(self, configuration):
-        if configuration:
-            if type(configuration) != dict:
-                super(Plus, self).configure(None)
-                raise Exception('Wrong configuration type')
-
-            if not configuration.has_key('GOOGLECLIENT_APIKEY'):
-                super(Plus, self).configure(None)
-                raise Exception('Wrong configuration type, it should contain GOOGLECLIENT_APIKEY')
-            if len(configuration) > 1:
-                raise Exception('What else did you try to insert in my config ?')
-        super(Plus, self).configure(configuration)
 
     def poll_plus(self):
         room = CHATROOM_PRESENCE[0]
