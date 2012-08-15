@@ -2,9 +2,17 @@ import json
 from datetime import datetime
 import logging
 from config import CHATROOM_PRESENCE
-from errbot.botplugin import BotPlugin
-from errbot.jabberbot import botcmd
 from urllib2 import urlopen, quote
+
+# Backward compatibility
+from errbot.version import VERSION
+from errbot.utils import version2array
+if version2array(VERSION) >= [1,6,0]:
+    from errbot import botcmd, BotPlugin
+else:
+    from errbot.botplugin import BotPlugin
+    from errbot.jabberbot import botcmd
+
 
 __author__ = 'gbin'
 
