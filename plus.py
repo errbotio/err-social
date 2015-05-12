@@ -24,6 +24,7 @@ PLUS_STREAM_URL = 'https://www.googleapis.com/plus/v1/people/%s/activities/publi
 PLUS_SEARCH_URL = 'https://www.googleapis.com/plus/v1/people?alt=json&key=%s&query=%s'
 PLUS_PROFILE_URL = 'https://www.googleapis.com/plus/v1/people/%s?key=%s'
 
+
 def parse_isodate(date_string):
     return datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%S.%fZ")
 
@@ -49,7 +50,7 @@ class Feed(object):
 
 
 class Plus(BotPlugin):
-    min_err_version = '1.4.1' # it needs the new automatic configuration feature
+    min_err_version = '1.4.1'  # it needs the new automatic configuration feature
 
     def get_configuration_template(self):
         return {'GOOGLECLIENT_APIKEY': 'AIzaSyAKXi64lkJvAIHtTRf0WwQCGiw08gu8xsq'}
@@ -62,7 +63,7 @@ class Plus(BotPlugin):
             if f.updated > follow[id]:
                 self.send(room, f.title, message_type='groupchat')
                 for item in [item for item in f.items if item.updated > self['follow'][id]]:
-                    self.send(room, item.url + '\n' + unicode(item.updated) + '--' + item.title , message_type='groupchat')
+                    self.send(room, item.url + '\n' + unicode(item.updated) + '--' + item.title, message_type='groupchat')
                     if item.attachments:
                         for image in item.attachments:
                             self.send(room, image, message_type='groupchat')
@@ -160,4 +161,4 @@ class Plus(BotPlugin):
         List the pages/persons you are following
         """
         ids = self.get('follow', {}).keys()
-        return '\n'.join([self.get_display_name(id) + ' (!plus unfollow %s)'%id for id in ids])
+        return '\n'.join([self.get_display_name(id) + ' (!plus unfollow %s)' % id for id in ids])
