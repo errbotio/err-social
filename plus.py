@@ -32,9 +32,9 @@ class Item(object):
     def __init__(self, json_item):
         self.title = json_item['title']
         self.url = json_item['url']
-        self.content = json_item['object']['originalContent'] if json_item['object'].has_key('originalContent') else ''
-        if json_item['object'].has_key('attachments'):
-            self.attachments = [attachment['fullImage']['url'] for attachment in json_item['object']['attachments'] if attachment.has_key('fullImage')]
+        self.content = json_item['object']['originalContent'] if 'originalContent' in json_item['object'] else ''
+        if 'attachments' in json_item['object']:
+            self.attachments = [attachment['fullImage']['url'] for attachment in json_item['object']['attachments'] if 'fullImage' in attachment]
         else:
             self.attachments = None
         self.updated = parse_isodate(json_item['updated'])
