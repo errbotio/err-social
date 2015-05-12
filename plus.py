@@ -42,7 +42,7 @@ class Item(object):
 
 class Feed(object):
     def __init__(self, userid, key):
-        result = json.load(urlopen(PLUS_STREAM_URL % (userid, key)))
+        result = json.loads(urlopen(PLUS_STREAM_URL % (userid, key)).read().decode('utf-8'))
         self.title = result['title']
         self.updated = datetime.strptime(result['updated'], "%Y-%m-%dT%H:%M:%S.%fZ")
         self.items = [Item(json_item) for json_item in result['items']]
@@ -78,7 +78,7 @@ class Plus(BotPlugin):
         self.start_poller(600, self.poll_plus)
 
     def get_display_name(self, id):
-        return json.load(urlopen(PLUS_PROFILE_URL % (id, self.config['GOOGLECLIENT_APIKEY'])))['displayName']
+        return json.loads(urlopen(PLUS_PROFILE_URL % (id, self.config['GOOGLECLIENT_APIKEY'])).read().decode('utf-8'))['displayName']
 
     @botcmd
     def plus_last(self, mess, args):
@@ -110,7 +110,7 @@ class Plus(BotPlugin):
             return 'This plugin needs to be configured... run !config Plus'
         if not args:
             return 'Who you want to look for ?'
-        result = json.load(urlopen(PLUS_SEARCH_URL % (self.config['GOOGLECLIENT_APIKEY'], quote(args))))
+        result = json.loads(urlopen(PLUS_SEARCH_URL % (self.config['GOOGLECLIENT_APIKEY'], quote(args))).read().decode('utf-8'))
         for item in result['items']:
             self.send(mess.getFrom(), item['displayName'] + ' (!plus follow ' + item['id'] + ') ' + item['image']['url'], message_type=mess.getType())
         return None
