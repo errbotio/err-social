@@ -2,7 +2,11 @@ import json
 from datetime import datetime
 import logging
 from config import CHATROOM_PRESENCE
-from urllib2 import urlopen, quote
+
+try:
+    from urllib2 import urlopen, quote
+except ImportError:
+    from urllib.request import urlopen, quote
 
 # Backward compatibility
 from errbot.version import VERSION

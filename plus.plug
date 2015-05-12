@@ -4,3 +4,6 @@ Module = plus
 
 [Documentation]
 Description = Follow google+ users
+
+[Python]
+Version=2+
