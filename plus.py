@@ -94,7 +94,7 @@ class Plus(BotPlugin):
         self.send(mess.getFrom(), f.title, message_type=mess.getType())
         self.send(mess.getFrom(), '****   ' + f.title, message_type=mess.getType())
         for item in f.items:
-            self.send(mess.getFrom(), item.url + '\n' + unicode(item.updated) + ' -- ' + item.title, message_type=mess.getType())
+            self.send(mess.getFrom(), item.url + '\n' + str(item.updated) + ' -- ' + item.title, message_type=mess.getType())
             if item.attachments:
                 for image in item.attachments:
                     self.send(mess.getFrom(), image, message_type=mess.getType())
