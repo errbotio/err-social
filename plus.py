@@ -2,7 +2,11 @@ import json
 from datetime import datetime
 import logging
 from config import CHATROOM_PRESENCE
-from urllib2 import urlopen, quote
+
+try:
+    from urllib2 import urlopen, quote
+except ImportError:
+    from urllib.request import urlopen, quote
 
 # Backward compatibility
 from errbot.version import VERSION
@@ -20,6 +24,7 @@ PLUS_STREAM_URL = 'https://www.googleapis.com/plus/v1/people/%s/activities/publi
 PLUS_SEARCH_URL = 'https://www.googleapis.com/plus/v1/people?alt=json&key=%s&query=%s'
 PLUS_PROFILE_URL = 'https://www.googleapis.com/plus/v1/people/%s?key=%s'
 
+
 def parse_isodate(date_string):
     return datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%S.%fZ")
 
@@ -28,9 +33,9 @@ class Item(object):
     def __init__(self, json_item):
         self.title = json_item['title']
         self.url = json_item['url']
-        self.content = json_item['object']['originalContent'] if json_item['object'].has_key('originalContent') else ''
-        if json_item['object'].has_key('attachments'):
-            self.attachments = [attachment['fullImage']['url'] for attachment in json_item['object']['attachments'] if attachment.has_key('fullImage')]
+        self.content = json_item['object']['originalContent'] if 'originalContent' in json_item['object'] else ''
+        if 'attachments' in json_item['object']:
+            self.attachments = [attachment['fullImage']['url'] for attachment in json_item['object']['attachments'] if 'fullImage' in attachment]
         else:
             self.attachments = None
         self.updated = parse_isodate(json_item['updated'])
@@ -38,14 +43,14 @@ class Item(object):
 
 class Feed(object):
     def __init__(self, userid, key):
-        result = json.load(urlopen(PLUS_STREAM_URL % (userid, key)))
+        result = json.loads(urlopen(PLUS_STREAM_URL % (userid, key)).read().decode('utf-8'))
         self.title = result['title']
         self.updated = datetime.strptime(result['updated'], "%Y-%m-%dT%H:%M:%S.%fZ")
         self.items = [Item(json_item) for json_item in result['items']]
 
 
 class Plus(BotPlugin):
-    min_err_version = '1.4.1' # it needs the new automatic configuration feature
+    min_err_version = '1.4.1'  # it needs the new automatic configuration feature
 
     def get_configuration_template(self):
         return {'GOOGLECLIENT_APIKEY': 'AIzaSyAKXi64lkJvAIHtTRf0WwQCGiw08gu8xsq'}
@@ -58,7 +63,7 @@ class Plus(BotPlugin):
             if f.updated > follow[id]:
                 self.send(room, f.title, message_type='groupchat')
                 for item in [item for item in f.items if item.updated > self['follow'][id]]:
-                    self.send(room, item.url + '\n' + unicode(item.updated) + '--' + item.title , message_type='groupchat')
+                    self.send(room, item.url + '\n' + unicode(item.updated) + '--' + item.title, message_type='groupchat')
                     if item.attachments:
                         for image in item.attachments:
                             self.send(room, image, message_type='groupchat')
@@ -74,7 +79,7 @@ class Plus(BotPlugin):
         self.start_poller(600, self.poll_plus)
 
     def get_display_name(self, id):
-        return json.load(urlopen(PLUS_PROFILE_URL % (id, self.config['GOOGLECLIENT_APIKEY'])))['displayName']
+        return json.loads(urlopen(PLUS_PROFILE_URL % (id, self.config['GOOGLECLIENT_APIKEY'])).read().decode('utf-8'))['displayName']
 
     @botcmd
     def plus_last(self, mess, args):
@@ -90,7 +95,7 @@ class Plus(BotPlugin):
         self.send(mess.getFrom(), f.title, message_type=mess.getType())
         self.send(mess.getFrom(), '****   ' + f.title, message_type=mess.getType())
         for item in f.items:
-            self.send(mess.getFrom(), item.url + '\n' + unicode(item.updated) + ' -- ' + item.title, message_type=mess.getType())
+            self.send(mess.getFrom(), item.url + '\n' + str(item.updated) + ' -- ' + item.title, message_type=mess.getType())
             if item.attachments:
                 for image in item.attachments:
                     self.send(mess.getFrom(), image, message_type=mess.getType())
@@ -106,7 +111,7 @@ class Plus(BotPlugin):
             return 'This plugin needs to be configured... run !config Plus'
         if not args:
             return 'Who you want to look for ?'
-        result = json.load(urlopen(PLUS_SEARCH_URL % (self.config['GOOGLECLIENT_APIKEY'], quote(args))))
+        result = json.loads(urlopen(PLUS_SEARCH_URL % (self.config['GOOGLECLIENT_APIKEY'], quote(args))).read().decode('utf-8'))
         for item in result['items']:
             self.send(mess.getFrom(), item['displayName'] + ' (!plus follow ' + item['id'] + ') ' + item['image']['url'], message_type=mess.getType())
         return None
@@ -156,4 +161,4 @@ class Plus(BotPlugin):
         List the pages/persons you are following
         """
         ids = self.get('follow', {}).keys()
-        return '\n'.join([self.get_display_name(id) + ' (!plus unfollow %s)'%id for id in ids])
+        return '\n'.join([self.get_display_name(id) + ' (!plus unfollow %s)' % id for id in ids])
